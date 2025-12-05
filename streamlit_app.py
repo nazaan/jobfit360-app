@@ -1,5 +1,7 @@
 import streamlit as st
-from utils.file_loader import load_file
+from utils.file_loader import load_file 
+import os 
+from utils.ai_feedback import generate_feedback
 
 st.set_page_config(page_title="JobFit360", layout="wide")
 
@@ -47,5 +49,16 @@ if st.button("Analyze"):
         # Placeholder for AI feedback (next step)
         st.info("AI-generated feedback will appear here soon.")
     else:
-        st.warning("Please upload both CV and JD to run analysis.")
+        st.warning("Please upload both CV and JD to run analysis.") 
+
+# Retrieve API key from Streamlit secrets or environment
+api_key = st.secrets.get("OPENAI_API_KEY", None)
+if api_key is None:
+    st.error("OpenAI API key not set. Add it in Streamlit Secrets.")
+else:
+    with st.spinner("Generating AI feedback..."):
+        feedback = generate_feedback(cv_text, jd_text, api_key)
+        st.subheader("💡 AI Feedback")
+        st.text_area("Feedback", feedback, height=250)
+
 
