@@ -1,19 +1,49 @@
-# 🎈 Blank app template
+# JobFit360 Dashboard (Streamlit)
 
-A simple Streamlit app template for you to modify!
+An interactive Streamlit app for running simple end-to-end machine learning experiments.  
+Built as a portfolio piece.
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://blank-app-template.streamlit.app/)
+---
 
-### How to run it on your own machine
+## 🚀 Features (Current)
+- Upload CSV datasets
+- Preview data
+- Select target column
+- Basic UI structure for future ML workflows
 
-1. Install the requirements
+---
 
-   ```
-   $ pip install -r requirements.txt
-   ```
+## 🧱 Tech Stack
+- **Python**
+- **Streamlit**
+- **Pandas**
+- **scikit-learn**
 
-2. Run the app
+---
 
-   ```
-   $ streamlit run streamlit_app.py
-   ```
+## 📦 Project Structure
+.
+├── app.py
+├── requirements.txt
+├── utils/
+│ ├── init.py
+│ └── data_loader.py
+└── .streamlit/
+└── config.toml 
+
+
+---
+
+## 🌐 Live App
+https://jobfit360-app.streamlit.app/
+
+---
+
+## 🔮 Roadmap
+- Train/test split UI
+- Model selection (LogReg, RandomForest, XGBoost…)
+- Metric visualization (ROC, confusion matrix, learning curves)
+- Experiment comparison
+- Model registry
+- Download trained models
+
