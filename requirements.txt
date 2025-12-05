@@ -1,4 +1,8 @@
 streamlit
 pandas
 scikit-learn
-matplotlib
+matplotlib 
+PyPDF2
+sentence-transformers
+openai
+
