@@ -31,11 +31,21 @@ else:
     st.info("Upload a Job Description to preview text.")
 
 # ------------------------
-# Placeholder for analysis
+# Compute similarity
 # ------------------------
+from utils.similarity import compute_similarity
+
 st.header("Analysis")
 if st.button("Analyze"):
     if cv_file and jd_file:
-        st.info("Analysis will run here soon (similarity + AI feedback).")
+        st.info("Running analysis...")
+
+        # Compute similarity %
+        similarity = compute_similarity(cv_text, jd_text)
+        st.success(f"🔹 CV ↔ JD Similarity: {similarity:.2f}%")
+
+        # Placeholder for AI feedback (next step)
+        st.info("AI-generated feedback will appear here soon.")
     else:
         st.warning("Please upload both CV and JD to run analysis.")
+
