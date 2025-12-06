@@ -2,6 +2,9 @@ import streamlit as st
 from utils.file_loader import load_file 
 import os 
 from utils.ai_feedback import generate_feedback
+import openai 
+
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 st.set_page_config(page_title="JobFit360", layout="wide")
 
