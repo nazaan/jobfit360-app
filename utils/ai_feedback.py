@@ -2,6 +2,7 @@
 
 import streamlit as st
 from openai import OpenAI
+import os 
 
 def generate_feedback(cv_text: str, jd_text: str, use_openai=True) -> str:
     """
