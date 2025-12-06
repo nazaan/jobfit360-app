@@ -4,9 +4,7 @@ pandas
 scikit-learn
 matplotlib
 PyPDF2
-sentence-transformers
-transformers
 torch
-nltk
+
 
 
