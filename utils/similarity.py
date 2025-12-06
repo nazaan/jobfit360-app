@@ -1,6 +1,6 @@
 # utils/similarity.py
 
-from utils.keywords import SKILLS_LC, RESPONSIBILITIES_LC, EDUCATION_LC, PROXIES
+from utils.keywords import SKILLS_LC, RESPONSIBILITIES_LC, EDUCATION_LC, PROXIES, EDU_SYNONYMS
 from utils.transferable_clusters import TRANSFERABLE_CLUSTERS
 import re
 
@@ -35,31 +35,43 @@ def match_partial(item, cv_tokens):
     return False
 
 
-def compute_category_score(jd_items, cv_tokens):
-    """
-    Compute coverage and score for one category.
-    jd_items: list of lowercase terms from JD
-    cv_tokens: list of lowercase words from CV
-    Returns: coverage dict and category score
-    """
+def compute_category_score(jd_items, cv_tokens, category=None):
     coverage = {}
     total_score = 0
 
     for item in jd_items:
-        if item in cv_tokens:
-            level = "Strong Match"
-        elif match_transferable(item):
-            level = "Transferable Skill"
-        elif match_partial(item, cv_tokens):
-            level = "Partial Match"
+        item_lower = item.lower()
+
+        # EDUCATION special case: check synonyms
+        if category == "education":
+            matched = False
+            if item_lower in EDU_SYNONYMS:
+                for syn in EDU_SYNONYMS[item_lower]:
+                    if any(syn in t for t in cv_tokens):
+                        matched = True
+                        break
+            if matched:
+                level = "Strong Match"
+            elif match_partial(item_lower, cv_tokens):
+                level = "Partial Match"
+            else:
+                level = "Missing"
         else:
-            level = "Missing"
+            if item_lower in cv_tokens:
+                level = "Strong Match"
+            elif match_transferable(item_lower):
+                level = "Transferable Skill"
+            elif match_partial(item_lower, cv_tokens):
+                level = "Partial Match"
+            else:
+                level = "Missing"
 
         coverage[item] = level
         total_score += COVERAGE_WEIGHTS[level]
 
     category_score = total_score / len(jd_items) if jd_items else None
     return coverage, category_score
+
 
 
 def compute_similarity(cv_text, jd_text):
