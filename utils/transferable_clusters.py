@@ -1,6 +1,8 @@
 # utils/transferable_clusters.py
 # Each cluster lists tools/skills considered mutually substitutable.
 
+print("DEBUG: loading transferable_clusters.py")
+
 TRANSFERABLE_CLUSTERS = [
     {
         "cluster": ["Tableau", "Power BI", "QlikView", "Looker", "Google Data Studio"],
