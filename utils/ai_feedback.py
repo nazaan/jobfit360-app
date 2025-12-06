@@ -1,18 +1,30 @@
-import streamlit as st
-from openai import OpenAI
-import os
+# utils/ai_feedback.py
 
-def generate_feedback(cv_text: str, jd_text: str, use_openai=True) -> str:
+import streamlit as st
+
+# Hugging Face imports
+try:
+    from transformers import pipeline
+    hf_available = True
+except ImportError:
+    hf_available = False
+
+def generate_feedback(cv_text: str, jd_text: str, use_openai=False) -> str:
+    """
+    Generates feedback using Hugging Face if available.
+    Falls back to simple keyword-based feedback if Hugging Face is unavailable.
+    OpenAI is optional and can be enabled in the future.
+    """
+
     if not cv_text or not jd_text:
         return "Please upload both CV and JD."
 
-    openai_key = st.secrets.get("OPENAI_API_KEY", None)
-
-    if use_openai and openai_key:
+    # -----------------------------
+    # 1️⃣ Hugging Face AI feedback
+    # -----------------------------
+    if hf_available:
         try:
-            os.environ["OPENAI_API_KEY"] = openai_key
-            client = OpenAI(api_key=openai_key)
-
+            generator = pipeline("text2text-generation", model="google/flan-t5-small")
             prompt = f"""
 CV:
 {cv_text}
@@ -26,17 +38,20 @@ Provide:
 3. Weak areas
 4. Suggestions to improve
 """
-
-            response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.4,
-                max_tokens=350,
-            )
-
-            return response.choices[0].message.content
-
+            output = generator(prompt, max_length=200)
+            return output[0]["generated_text"]
         except Exception as e:
-            return f"Error contacting OpenAI: {e}"
+            st.warning(f"Hugging Face model error: {e}")
 
-    return "AI feedback unavailable (no OpenAI key set)."
+    # -----------------------------
+    # 2️⃣ Fallback keyword-based feedback
+    # -----------------------------
+    cv_words = set(cv_text.lower().split())
+    jd_words = set(jd_text.lower().split())
+    matched = cv_words & jd_words
+    missing = jd_words - cv_words
+
+    feedback = f"**Matched keywords:** {', '.join(list(matched)[:20])}\n"
+    feedback += f"**Missing keywords:** {', '.join(list(missing)[:20])}\n"
+    feedback += "You can improve by adding missing skills/keywords."
+    return feedback
