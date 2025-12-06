@@ -1,21 +1,16 @@
-# utils/ai_feedback.py
-
 import streamlit as st
 from openai import OpenAI
-import os 
+import os
 
 def generate_feedback(cv_text: str, jd_text: str, use_openai=True) -> str:
-    """
-    Generates feedback using OpenAI if the key exists.
-    Otherwise returns a fallback message.
-    """
-
     if not cv_text or not jd_text:
         return "Please upload both CV and JD."
 
     openai_key = st.secrets.get("OPENAI_API_KEY", None)
+
     if use_openai and openai_key:
         try:
+            os.environ["OPENAI_API_KEY"] = openai_key
             client = OpenAI(api_key=openai_key)
 
             prompt = f"""
