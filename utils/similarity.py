@@ -4,8 +4,8 @@ from sentence_transformers import SentenceTransformer, util
 import nltk
 from nltk.tokenize import sent_tokenize
 
-# Download punkt tokenizer once
-nltk.download('punkt')
+# Ensure punkt tokenizer is available at runtime
+nltk.download('punkt', quiet=True)
 
 # Load a small, fast model
 model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
