@@ -1,10 +1,26 @@
-import streamlit as st
-from utils.file_loader import load_file 
 import os 
-from utils.ai_feedback import generate_feedback
 import openai 
+import streamlit as st
+from utils.file_loader import load_file
+from utils.similarity import compute_similarity
+from utils.ai_feedback import generate_feedback
 
-#openai.api_key = st.secrets["OPENAI_API_KEY"]
+
+#openai.api_key = st.secrets["OPENAI_API_KEY"] 
+st.title("JobFit360 – CV vs JD Analyzer")
+
+cv_file = st.file_uploader("Upload CV (PDF or TXT)", type=["pdf", "txt"])
+jd_file = st.file_uploader("Upload Job Description (PDF or TXT)", type=["pdf", "txt"])
+
+cv_text = ""
+jd_text = ""
+
+if cv_file is not None:
+    cv_text = load_file(cv_file)
+
+if jd_file is not None:
+    jd_text = load_file(jd_file)
+    
 
 st.set_page_config(page_title="JobFit360", layout="wide")
 
@@ -43,19 +59,17 @@ from utils.similarity import compute_similarity
 st.header("Analysis")
 if st.button("Analyze"):
     if not cv_text or not jd_text:
-        st.error("Please upload both CV and JD.")
+        st.error("Please upload both CV and JD before analyzing.")
     else:
-        # 1. Calculate similarity FIRST
         similarity = compute_similarity(cv_text, jd_text)
 
-        # 2. Display similarity
         st.subheader("CV–JD Similarity")
         st.write(f"{similarity:.2f}%")
 
-        # 3. AI feedback (safe)
         st.subheader("AI Feedback")
         feedback = generate_feedback(cv_text, jd_text)
         st.write(feedback)
+
 
 
 # Retrieve API key from Streamlit secrets or environment
