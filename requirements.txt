@@ -4,7 +4,7 @@ scikit-learn
 matplotlib 
 PyPDF2
 sentence-transformers
-openai
+openai==0.28
 transformers
 torch
 
