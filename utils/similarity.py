@@ -1,8 +1,8 @@
 # utils/similarity.py
+
 from utils.keywords import SKILLS_LC, RESPONSIBILITIES_LC, EDUCATION_LC, PROXIES
 from utils.transferable_clusters import TRANSFERABLE_CLUSTERS
-
-print("DEBUG: loading similarity.py") 
+import re
 
 COVERAGE_WEIGHTS = {
     "Strong Match": 1,
@@ -11,17 +11,20 @@ COVERAGE_WEIGHTS = {
     "Missing": 0
 }
 
+
 def match_transferable(item):
     """Return coverage_level if item is in any transferable cluster"""
+    item_lower = item.lower()
     for cluster in TRANSFERABLE_CLUSTERS:
-        if item in [x.lower() for x in cluster["cluster"]]:
+        if item_lower in [x.lower() for x in cluster["cluster"]]:
             return cluster["coverage_level"]
     return None
 
+
 def match_partial(item, cv_tokens):
     """
-    Check if any proxy term matches tokens in CV
-    Return True if partial match found
+    Check if any proxy term matches tokens in CV.
+    Return True if partial match found.
     """
     item_lower = item.lower()
     if item_lower in PROXIES:
@@ -31,17 +34,23 @@ def match_partial(item, cv_tokens):
                 return True
     return False
 
+
 def compute_category_score(jd_items, cv_tokens):
+    """
+    Compute coverage and score for one category.
+    jd_items: list of lowercase terms from JD
+    cv_tokens: list of lowercase words from CV
+    Returns: coverage dict and category score
+    """
     coverage = {}
     total_score = 0
 
     for item in jd_items:
-        item_lower = item.lower()
-        if item_lower in cv_tokens:
+        if item in cv_tokens:
             level = "Strong Match"
-        elif match_transferable(item_lower):
+        elif match_transferable(item):
             level = "Transferable Skill"
-        elif match_partial(item_lower, cv_tokens):
+        elif match_partial(item, cv_tokens):
             level = "Partial Match"
         else:
             level = "Missing"
@@ -49,29 +58,36 @@ def compute_category_score(jd_items, cv_tokens):
         coverage[item] = level
         total_score += COVERAGE_WEIGHTS[level]
 
-    if jd_items:
-        category_score = total_score / len(jd_items)
-    else:
-        category_score = None
+    category_score = total_score / len(jd_items) if jd_items else None
     return coverage, category_score
+
 
 def compute_similarity(cv_text, jd_text):
     """
     Compute coverage and score per category.
     Returns dictionary:
     {
-        "skills": {"coverage": {...}, "score": ...},
-        "responsibilities": {"coverage": {...}, "score": ...},
-        "education": {"coverage": {...}, "score": ...}
+        "skills": {item: coverage_level, ...},
+        "skills_score": float,
+        "responsibilities": {item: coverage_level, ...},
+        "responsibilities_score": float,
+        "education": {item: coverage_level, ...},
+        "education_score": float
     }
     """
-    cv_tokens = [t.lower() for t in cv_text.split()]
-    jd_tokens = [t.lower() for t in jd_text.split()]
+    # Simple tokenization (lowercase, alphanumeric)
+    cv_tokens = re.findall(r'\w+', cv_text.lower())
+    jd_tokens = re.findall(r'\w+', jd_text.lower())
+
+    # Filter JD tokens per category
+    jd_skills = [t for t in jd_tokens if t in SKILLS_LC]
+    jd_responsibilities = [t for t in jd_tokens if t in RESPONSIBILITIES_LC]
+    jd_education = [t for t in jd_tokens if t in EDUCATION_LC]
 
     results = {}
 
-    results["skills"], results["skills_score"] = compute_category_score(SKILLS_LC, cv_tokens)
-    results["responsibilities"], results["responsibilities_score"] = compute_category_score(RESPONSIBILITIES_LC, cv_tokens)
-    results["education"], results["education_score"] = compute_category_score(EDUCATION_LC, cv_tokens)
+    results["skills"], results["skills_score"] = compute_category_score(jd_skills, cv_tokens)
+    results["responsibilities"], results["responsibilities_score"] = compute_category_score(jd_responsibilities, cv_tokens)
+    results["education"], results["education_score"] = compute_category_score(jd_education, cv_tokens)
 
     return results
