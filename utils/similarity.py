@@ -38,24 +38,30 @@ def match_partial(item, cv_tokens):
 def compute_category_score(jd_items, cv_tokens, category=None):
     coverage = {}
     total_score = 0
+    matched_edu = False  # track if we already matched an education
 
     for item in jd_items:
         item_lower = item.lower()
 
-        # EDUCATION special case: check synonyms
         if category == "education":
-            matched = False
-            if item_lower in EDU_SYNONYMS:
-                for syn in EDU_SYNONYMS[item_lower]:
-                    if any(syn in t for t in cv_tokens):
-                        matched = True
-                        break
-            if matched:
-                level = "Strong Match"
-            elif match_partial(item_lower, cv_tokens):
-                level = "Partial Match"
+            if not matched_edu:
+                # check synonyms
+                matched = False
+                if item_lower in EDU_SYNONYMS:
+                    for syn in EDU_SYNONYMS[item_lower]:
+                        if any(syn in t for t in cv_tokens):
+                            matched = True
+                            break
+                if matched:
+                    level = "Strong Match"
+                    matched_edu = True  # prevent further "Missing" on other items
+                elif match_partial(item_lower, cv_tokens):
+                    level = "Partial Match"
+                else:
+                    level = "Missing"
             else:
-                level = "Missing"
+                # already matched one edu item → mark others as ignored or skip
+                level = "Strong Match"  # or None if you prefer
         else:
             if item_lower in cv_tokens:
                 level = "Strong Match"
@@ -67,7 +73,7 @@ def compute_category_score(jd_items, cv_tokens, category=None):
                 level = "Missing"
 
         coverage[item] = level
-        total_score += COVERAGE_WEIGHTS[level]
+        total_score += COVERAGE_WEIGHTS.get(level, 0)
 
     category_score = total_score / len(jd_items) if jd_items else None
     return coverage, category_score
