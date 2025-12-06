@@ -2,6 +2,8 @@ import io
 from pathlib import Path
 from PyPDF2 import PdfReader
 
+print("DEBUG: loading file_loader.py") 
+
 def load_file(file) -> str:
     """
     Load a PDF or text file and return its text content.
