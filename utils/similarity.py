@@ -2,6 +2,8 @@
 from utils.keywords import SKILLS_LC, RESPONSIBILITIES_LC, EDUCATION_LC, PROXIES
 from utils.transferable_clusters import TRANSFERABLE_CLUSTERS
 
+print("DEBUG: loading similarity.py") 
+
 COVERAGE_WEIGHTS = {
     "Strong Match": 1,
     "Transferable Skill": 0.8,
