@@ -6,7 +6,7 @@ from transformers import pipeline
 # Load model once (small, fast)
 generator = pipeline("text2text-generation", model="google/flan-t5-small")
 
-def generate_feedback(cv_text: str, jd_text: str, use_openai=True, api_key=OPEN_AI_KEY) -> str:
+def generate_feedback(cv_text: str, jd_text: str, use_openai=True, api_key=api_key) -> str:
     """
     Generate feedback on CV vs JD.
     By default uses a free local LLM.
