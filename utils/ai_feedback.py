@@ -24,7 +24,7 @@ def generate_feedback(cv_text: str, jd_text: str, use_openai=False) -> str:
     # -----------------------------
     if hf_available:
         try:
-            generator = pipeline("text2text-generation", model="google/flan-t5-small")
+            generator = pipeline("text2text-generation", model="google/flan-t5-base")
             prompt = f"""
 CV:
 {cv_text}
