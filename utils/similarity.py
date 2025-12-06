@@ -100,6 +100,6 @@ def compute_similarity(cv_text, jd_text):
 
     results["skills"], results["skills_score"] = compute_category_score(jd_skills, cv_tokens)
     results["responsibilities"], results["responsibilities_score"] = compute_category_score(jd_responsibilities, cv_tokens)
-    results["education"], results["education_score"] = compute_category_score(jd_education, cv_tokens)
+    results["education"], results["education_score"] = compute_category_score(jd_education, cv_tokens, category="education")
 
     return results
