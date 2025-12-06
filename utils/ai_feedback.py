@@ -32,11 +32,7 @@ CV:
 Job Description:
 {jd_text}
 
-Provide:
-1. Summary of match
-2. Strengths
-3. Weak areas
-4. Suggestions to improve
+Analyze the following CV against the Job Description. Give a short summary of the match, strengths, weak points, and tips for improvement.
 """
             output = generator(prompt, max_length=200)
             return output[0]["generated_text"]
