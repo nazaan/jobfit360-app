@@ -1,19 +1,38 @@
+# utils/similarity.py
+
 from sentence_transformers import SentenceTransformer, util
+import nltk
+from nltk.tokenize import sent_tokenize
 
-# Load model once (small model for speed)
-model = SentenceTransformer('all-MiniLM-L6-v2')
+# Download punkt tokenizer once
+nltk.download('punkt')
 
-def compute_similarity(text1: str, text2: str) -> float:
+# Load a small, fast model
+model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+
+def compute_similarity(cv_text: str, jd_text: str) -> float:
     """
-    Compute cosine similarity between two texts.
-    Returns a percentage (0-100).
+    Computes CV–JD similarity as a percentage (0–100).
+    Uses sentence-level embeddings for precise semantic matching.
     """
-    if not text1 or not text2:
+    if not cv_text or not jd_text:
         return 0.0
 
-    embeddings1 = model.encode(text1, convert_to_tensor=True)
-    embeddings2 = model.encode(text2, convert_to_tensor=True)
+    # Split texts into sentences
+    cv_sents = sent_tokenize(cv_text)
+    jd_sents = sent_tokenize(jd_text)
 
-    cosine_score = util.cos_sim(embeddings1, embeddings2)
-    return float(cosine_score[0][0] * 100)
+    # Encode sentences
+    cv_embs = model.encode(cv_sents, convert_to_tensor=True)
+    jd_embs = model.encode(jd_sents, convert_to_tensor=True)
 
+    # Cosine similarity matrix
+    sim_matrix = util.cos_sim(cv_embs, jd_embs)
+
+    # For each JD sentence, take max similarity to any CV sentence
+    max_per_jd = sim_matrix.max(dim=0).values
+
+    # Average similarity across all JD sentences
+    avg_similarity = max_per_jd.mean().item()
+
+    return avg_similarity * 100  # as percentage
