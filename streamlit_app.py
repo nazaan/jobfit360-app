@@ -1,8 +1,21 @@
 import streamlit as st
 from utils.file_loader import load_file
 from utils.similarity import compute_similarity
+from utils.transferable_clusters import TRANSFERABLE_CLUSTERS
 
+# ------------------------
+# Helpers
+# ------------------------
+def get_transferable_explanation(item):
+    """Return explanation if item is in any transferable cluster"""
+    for cluster in TRANSFERABLE_CLUSTERS:
+        if item.lower() in [x.lower() for x in cluster["cluster"]]:
+            return cluster["explanation"]
+    return ""
+
+# ------------------------
 # Page setup
+# ------------------------
 st.set_page_config(page_title="JobFit360", layout="wide")
 st.title("💼 JobFit360: CV & JD Analyzer")
 
@@ -36,7 +49,6 @@ else:
 # Analysis
 # ------------------------
 if st.button("Analyze"):
-
     if not cv_text or not jd_text:
         st.error("Please upload both CV and JD before analyzing.")
     else:
@@ -48,12 +60,12 @@ if st.button("Analyze"):
             score = results[f"{cat}_score"]
             st.write(f"**{cat.capitalize()}**: {score*100:.1f}%" if score is not None else "N/A")
 
-        # Display coverage tables
-        st.subheader("Coverage Table")
+        # Display coverage tables with explanations
+        st.subheader("Coverage Table with Explanations")
         for cat in ["skills", "responsibilities", "education"]:
             st.write(f"**{cat.capitalize()}**")
             coverage = results[cat]
-            table_text = ""
+            table_lines = []
             for item, level in coverage.items():
                 symbol = {
                     "Strong Match": "✅",
@@ -61,5 +73,11 @@ if st.button("Analyze"):
                     "Partial Match": "⚠",
                     "Missing": "❌"
                 }[level]
-                table_text += f"{symbol} {item}\n"
-            st.text_area(f"{cat.capitalize()} Coverage", table_text, height=250)
+
+                explanation = get_transferable_explanation(item) if level == "Transferable Skill" else ""
+                line = f"{symbol} {item}"
+                if explanation:
+                    line += f" → {explanation}"
+                table_lines.append(line)
+
+            st.text_area(f"{cat.capitalize()} Coverage", "\n".join(table_lines), height=250)
