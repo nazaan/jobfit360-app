@@ -42,17 +42,16 @@ from utils.similarity import compute_similarity
 
 st.header("Analysis")
 if st.button("Analyze"):
-    if cv_file and jd_file:
-        st.info("Running analysis...")
-
-        # Compute similarity %
-        similarity = compute_similarity(cv_text, jd_text)
-        st.success(f"🔹 CV ↔ JD Similarity: {similarity:.2f}%")
-
-        # Placeholder for AI feedback (next step)
-        st.info("AI-generated feedback will appear here soon.")
+    if not cv_text or not jd_text:
+        st.error("Please upload both CV and JD.")
     else:
-        st.warning("Please upload both CV and JD to run analysis.") 
+        st.subheader("CV–JD Similarity")
+        st.write(f"{similarity:.2f}%")
+
+        st.subheader("AI Feedback")
+        # This will try OpenAI only if the key exists
+        feedback = generate_feedback(cv_text, jd_text)
+        st.write(feedback)
 
 # Retrieve API key from Streamlit secrets or environment
 api_key = st.secrets.get("OPENAI_API_KEY", None)
