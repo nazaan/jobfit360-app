@@ -3,18 +3,20 @@
 from sentence_transformers import SentenceTransformer, util
 import nltk
 from nltk.tokenize import sent_tokenize
+import os
 
-# Ensure punkt tokenizer is available at runtime
-nltk.download('punkt', quiet=True)
+# Force NLTK to use a local directory inside Streamlit Cloud
+nltk_data_dir = os.path.join(os.getcwd(), "nltk_data")
+os.makedirs(nltk_data_dir, exist_ok=True)
+nltk.data.path.append(nltk_data_dir)
 
-# Load a small, fast model
+# Download punkt tokenizer if not already present
+nltk.download('punkt', download_dir=nltk_data_dir, quiet=True)
+
+# Load small sentence transformer model
 model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 
 def compute_similarity(cv_text: str, jd_text: str) -> float:
-    """
-    Computes CV–JD similarity as a percentage (0–100).
-    Uses sentence-level embeddings for precise semantic matching.
-    """
     if not cv_text or not jd_text:
         return 0.0
 
@@ -26,13 +28,13 @@ def compute_similarity(cv_text: str, jd_text: str) -> float:
     cv_embs = model.encode(cv_sents, convert_to_tensor=True)
     jd_embs = model.encode(jd_sents, convert_to_tensor=True)
 
-    # Cosine similarity matrix
+    # Cosine similarity
     sim_matrix = util.cos_sim(cv_embs, jd_embs)
 
     # For each JD sentence, take max similarity to any CV sentence
     max_per_jd = sim_matrix.max(dim=0).values
 
-    # Average similarity across all JD sentences
+    # Average similarity across JD sentences
     avg_similarity = max_per_jd.mean().item()
 
-    return avg_similarity * 100  # as percentage
+    return avg_similarity * 100
