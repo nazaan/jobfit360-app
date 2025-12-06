@@ -62,6 +62,17 @@ PROXIES = {
     "social_sciences": ["qualitative","quantitative","survey design","behavioral","fieldwork","interview","coding scheme","protocol"]
 }
 
+# utils/education_map.py
+
+EDU_SYNONYMS = {
+    "bachelor": ["bachelor", "b.sc", "b.s", "b.s.", "bsc", "bs"],
+    "master": ["master", "m.sc", "m.s", "m.s.", "msc", "ms", "mba"],
+    "phd": ["phd", "doctorate", "d.phil", "d.phil."],
+    "associate": ["associate", "aas", "aa", "associate degree"],
+    "high school": ["high school", "secondary school"],
+}
+
+
 # Normalization helper lists (lowercase)
 SKILLS_LC = [s.lower() for s in SKILLS]
 RESPONSIBILITIES_LC = [r.lower() for r in RESPONSIBILITIES]
