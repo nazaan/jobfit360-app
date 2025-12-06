@@ -1,23 +1,22 @@
 # utils/similarity.py
 from sentence_transformers import SentenceTransformer, util
-import nltk
-from nltk.tokenize import sent_tokenize
-import tempfile
+import re
 
-# Use Streamlit's temp folder for nltk data
-nltk_data_dir = tempfile.mkdtemp()
-nltk.data.path.append(nltk_data_dir)
-nltk.download('punkt', download_dir=nltk_data_dir, quiet=True)
-
-# Load small, fast sentence-transformer model
+# Load small, fast model
 model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+
+def split_sentences(text: str):
+    """Simple regex-based sentence splitter"""
+    # Split on '.', '?', '!', followed by space or end of line
+    sentences = re.split(r'(?<=[.!?])\s+', text.strip())
+    return [s for s in sentences if s]
 
 def compute_similarity(cv_text: str, jd_text: str) -> float:
     if not cv_text or not jd_text:
         return 0.0
 
-    cv_sents = sent_tokenize(cv_text)
-    jd_sents = sent_tokenize(jd_text)
+    cv_sents = split_sentences(cv_text)
+    jd_sents = split_sentences(jd_text)
 
     cv_embs = model.encode(cv_sents, convert_to_tensor=True)
     jd_embs = model.encode(jd_sents, convert_to_tensor=True)
