@@ -1,53 +1,56 @@
 # utils/ai_feedback.py
 
 import streamlit as st
+from transformers import pipeline
 
-# Hugging Face imports
-try:
-    from transformers import pipeline
-    hf_available = True
-except ImportError:
-    hf_available = False
+# Initialize the Hugging Face text-generation pipeline
+@st.cache_resource(show_spinner=False)
+def load_generator():
+    return pipeline("text2text-generation", model="google/flan-t5-large")
 
-def generate_feedback(cv_text: str, jd_text: str, use_openai=False) -> str:
+generator = load_generator()
+
+
+def generate_feedback(cv_text: str, jd_text: str) -> str:
     """
-    Generates feedback using Hugging Face if available.
-    Falls back to simple keyword-based feedback if Hugging Face is unavailable.
-    OpenAI is optional and can be enabled in the future.
+    Generates AI feedback for a CV vs JD comparison using flan-t5-large.
+    Falls back to a keyword-based message if generation fails.
     """
-
     if not cv_text or not jd_text:
         return "Please upload both CV and JD."
 
-    # -----------------------------
-    # 1️⃣ Hugging Face AI feedback
-    # -----------------------------
-    if hf_available:
-        try:
-            generator = pipeline("text2text-generation", model="google/flan-t5-large")
-            prompt = f"""
+    prompt = f"""
 CV:
 {cv_text}
 
 Job Description:
 {jd_text}
 
-Analyze the following CV against the Job Description. Give a short summary of the match, strengths, weak points, and tips for improvement.
+Analyze and provide:
+- Summary of match
+- Strengths
+- Weak areas
+- Suggestions to improve
 """
-            output = generator(prompt, max_length=200)
-            return output[0]["generated_text"]
-        except Exception as e:
-            st.warning(f"Hugging Face model error: {e}")
 
-    # -----------------------------
-    # 2️⃣ Fallback keyword-based feedback
-    # -----------------------------
-    cv_words = set(cv_text.lower().split())
-    jd_words = set(jd_text.lower().split())
-    matched = cv_words & jd_words
-    missing = jd_words - cv_words
+    try:
+        result = generator(
+            prompt,
+            max_length=600,
+            do_sample=True,
+            temperature=0.4
+        )
+        feedback = result[0]['generated_text']
+        if not feedback.strip():
+            raise ValueError("Empty feedback generated.")
+        return feedback
 
-    feedback = f"**Matched keywords:** {', '.join(list(matched)[:20])}\n"
-    feedback += f"**Missing keywords:** {', '.join(list(missing)[:20])}\n"
-    feedback += "You can improve by adding missing skills/keywords."
-    return feedback
+    except Exception as e:
+        # Fallback keyword-based feedback
+        return (
+            "AI feedback unavailable. Here's a simple summary:\n\n"
+            "- Make sure your CV matches key skills in the JD.\n"
+            "- Highlight relevant experience and achievements.\n"
+            "- Include measurable results where possible.\n"
+            "- Tailor your CV to the job requirements."
+        )
