@@ -1,45 +1,47 @@
 # utils/ai_feedback.py
 
-# Option A: Free Hugging Face model (default for now)
-from transformers import pipeline
+import streamlit as st
+import openai
 
-# Load model once (small, fast)
-generator = pipeline("text2text-generation", model="google/flan-t5-small")
+def generate_feedback(cv_text: str, jd_text: str, use_openai=True) -> str:
+    """
+    Generates feedback using OpenAI if key exists.
+    Otherwise returns a simple fallback message.
+    """
 
-def generate_feedback(cv_text: str, jd_text: str, use_openai=True, api_key=api_key) -> str:
-    """
-    Generate feedback on CV vs JD.
-    By default uses a free local LLM.
-    Set use_openai=True to use OpenAI API instead (requires key).
-    """
     if not cv_text or not jd_text:
-        return "Please provide both CV and JD text."
+        return "Please upload both CV and JD before generating feedback."
 
-    prompt = f"""
-Candidate CV:
+    openai_key = st.secrets.get("OPENAI_API_KEY", None)
+
+    if use_openai and openai_key:
+        openai.api_key = openai_key
+
+        prompt = f"""
+CV:
 {cv_text}
 
 Job Description:
 {jd_text}
 
-Provide:
-1. Short summary of fit
-2. Positive points
-3. Suggestions to improve match
+Give:
+1. Short summary of match
+2. Strengths
+3. Weak points
+4. Suggestions to improve
 """
 
-    if use_openai and api_key:
-        # Optional OpenAI code (kept for future)
-        import openai
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
-            max_tokens=300,
-            api_key=api_key
-        )
-        return response.choices[0].message.content.strip()
-    
-    # Default: use Hugging Face small model
-    output = generator(prompt, max_length=300, do_sample=True)
-    return output[0]["generated_text"]
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.4,
+                max_tokens=350,
+            )
+            return response.choices[0].message.content.strip()
+
+        except Exception as e:
+            return f"Error contacting OpenAI: {e}"
+
+    # Fallback (no OpenAI key)
+    return "AI feedback unavailable (no OpenAI key set)."
