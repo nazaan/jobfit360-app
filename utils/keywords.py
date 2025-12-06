@@ -1,6 +1,9 @@
 # utils/keywords.py
 # Master lists and proxy dictionaries for CV↔JD matching.
 
+print("DEBUG: loading keywords.py")
+
+
 SKILLS = [
     "Python","R","SQL","Tableau","Power BI","QlikView","Looker",
     "AWS","Azure","Google Cloud Platform","Photoshop","Illustrator",
