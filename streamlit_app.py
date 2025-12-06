@@ -45,13 +45,18 @@ if st.button("Analyze"):
     if not cv_text or not jd_text:
         st.error("Please upload both CV and JD.")
     else:
+        # 1. Calculate similarity FIRST
+        similarity = compute_similarity(cv_text, jd_text)
+
+        # 2. Display similarity
         st.subheader("CV–JD Similarity")
         st.write(f"{similarity:.2f}%")
 
+        # 3. AI feedback (safe)
         st.subheader("AI Feedback")
-        # This will try OpenAI only if the key exists
         feedback = generate_feedback(cv_text, jd_text)
         st.write(feedback)
+
 
 # Retrieve API key from Streamlit secrets or environment
 api_key = st.secrets.get("OPENAI_API_KEY", None)
