@@ -1,39 +1,45 @@
-import openai
+# utils/ai_feedback.py
 
-# Make sure your OpenAI API key is set in Streamlit secrets or environment variable
-# e.g., st.secrets["OPENAI_API_KEY"] or os.environ["OPENAI_API_KEY"]
+# Option A: Free Hugging Face model (default for now)
+from transformers import pipeline
 
-def generate_feedback(cv_text: str, jd_text: str, api_key: str) -> str:
+# Load model once (small, fast)
+generator = pipeline("text2text-generation", model="google/flan-t5-small")
+
+def generate_feedback(cv_text: str, jd_text: str, use_openai=False, api_key=None) -> str:
     """
-    Generate AI feedback on CV vs JD.
-    Returns a string with summary, positives, and improvement suggestions.
+    Generate feedback on CV vs JD.
+    By default uses a free local LLM.
+    Set use_openai=True to use OpenAI API instead (requires key).
     """
     if not cv_text or not jd_text:
         return "Please provide both CV and JD text."
 
     prompt = f"""
-You are a career coach. Given the candidate CV and the Job Description,
-provide:
-1. A short summary paragraph of the candidate's fit
-2. Positive points from the CV
-3. Suggestions for improvement to better match the JD
-
-CV:
+Candidate CV:
 {cv_text}
 
-JD:
+Job Description:
 {jd_text}
 
-Please format your response clearly.
+Provide:
+1. Short summary of fit
+2. Positive points
+3. Suggestions to improve match
 """
 
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.7,
-        max_tokens=300,
-        api_key=api_key
-    )
-
-    return response.choices[0].message.content.strip()
-
+    if use_openai and api_key:
+        # Optional OpenAI code (kept for future)
+        import openai
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+            max_tokens=300,
+            api_key=api_key
+        )
+        return response.choices[0].message.content.strip()
+    
+    # Default: use Hugging Face small model
+    output = generator(prompt, max_length=300, do_sample=True)
+    return output[0]["generated_text"]
